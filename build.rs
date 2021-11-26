@@ -1,6 +1,7 @@
 use std::io::{copy, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, fs};
 fn download() -> reqwest::Result<()> {
     if std::path::Path::new("./embree").exists() {
         return Ok(());
@@ -37,11 +38,33 @@ fn gen() -> Result<()> {
     Ok(())
 }
 
+fn get_output_path() -> PathBuf {
+    //<root or manifest path>/target/<profile>/
+    let manifest_dir_string = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let build_type = env::var("PROFILE").unwrap();
+    let path = Path::new(&manifest_dir_string)
+        .join("target")
+        .join(build_type);
+    return PathBuf::from(path);
+}
+
 fn main() -> Result<()> {
     download().unwrap();
     // gen()?;
-    println!("cargo:rustc-link-search=native=./embree/bin");
-    println!("cargo:rustc-link-search=native=./embree/lib");
+    println!("{:?}", env::var("OUT_DIR"));
+    println!("cargo:rustc-link-search=native=./embree/bin/");
+    println!("cargo:rustc-link-search=native=./embree/lib/");
     println!("cargo:rustc-link-lib=dylib=embree3");
+
+    #[cfg(target_os = "windows")]
+    for entry in fs::read_dir("./embree/bin/")? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().is_some() && path.extension().unwrap() == "dll" {
+            let target_dir = get_output_path();
+            let dest = Path::join(Path::new(&target_dir), path.file_name().unwrap());
+            fs::copy(path, dest).unwrap();
+        }
+    }
     Ok(())
 }

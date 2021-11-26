@@ -63,6 +63,7 @@ fn main() -> Result<()> {
         if path.extension().is_some() && path.extension().unwrap() == "dll" {
             let target_dir = get_output_path();
             let dest = Path::join(Path::new(&target_dir), path.file_name().unwrap());
+            println!("{:?}", path);
             println!("{:?}", dest);
             fs::copy(path, dest).unwrap();
         }

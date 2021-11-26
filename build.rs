@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, fs};
 fn download() -> reqwest::Result<()> {
-    if std::path::Path::new("./embree").exists() {
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = out_dir.clone() + &"/embree";
+    if std::path::Path::new(&out_dir).exists() {
         return Ok(());
     }
     let (url, file) = if cfg!(target_os = "windows") {
@@ -16,9 +18,9 @@ fn download() -> reqwest::Result<()> {
     let mut dst = std::fs::File::create(file).unwrap();
     let mut content = std::io::Cursor::new(response.bytes()?);
     copy(&mut content, &mut dst).unwrap();
-    std::fs::create_dir_all("./embree").unwrap();
+    std::fs::create_dir_all(&out_dir).unwrap();
     Command::new("tar")
-        .args(["-zxvf", file, "-C", "./embree", "--strip-components=1"])
+        .args(["-zxvf", file, "-C", &out_dir, "--strip-components=1"])
         .output()
         .unwrap();
 
@@ -52,12 +54,13 @@ fn main() -> Result<()> {
     download().unwrap();
     // gen()?;
     println!("{:?}", env::var("OUT_DIR"));
-    println!("cargo:rustc-link-search=native=./embree/bin/");
-    println!("cargo:rustc-link-search=native=./embree/lib/");
+    let out_dir = env::var("OUT_DIR").unwrap();
+    println!("cargo:rustc-link-search=native={}/embree/bin/", out_dir);
+    println!("cargo:rustc-link-search=native={}/embree/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree3");
-
+    let out_dir = out_dir.clone() + &"/embree/bin";
     #[cfg(target_os = "windows")]
-    for entry in fs::read_dir("./embree/bin/")? {
+    for entry in fs::read_dir(out_dir)? {
         let entry = entry?;
         let path = entry.path();
         if path.extension().is_some() && path.extension().unwrap() == "dll" {

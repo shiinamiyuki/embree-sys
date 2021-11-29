@@ -178,57 +178,57 @@ fn bindgen_test_layout___crt_locale_pointers() {
     );
 }
 pub type _locale_t = *mut __crt_locale_pointers;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct _Mbstatet {
-    pub _Wchar: ::std::os::raw::c_ulong,
-    pub _Byte: ::std::os::raw::c_ushort,
-    pub _State: ::std::os::raw::c_ushort,
-}
-#[test]
-fn bindgen_test_layout__Mbstatet() {
-    assert_eq!(
-        ::std::mem::size_of::<_Mbstatet>(),
-        8usize,
-        concat!("Size of: ", stringify!(_Mbstatet))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_Mbstatet>(),
-        4usize,
-        concat!("Alignment of ", stringify!(_Mbstatet))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Wchar as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_Wchar)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Byte as *const _ as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_Byte)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._State as *const _ as usize },
-        6usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_Mbstatet),
-            "::",
-            stringify!(_State)
-        )
-    );
-}
-pub type mbstate_t = _Mbstatet;
+// #[repr(C)]
+// #[derive(Debug, Copy, Clone)]
+// pub struct _Mbstatet {
+//     pub _Wchar: ::std::os::raw::c_ulong,
+//     pub _Byte: ::std::os::raw::c_ushort,
+//     pub _State: ::std::os::raw::c_ushort,
+// }
+// #[test]
+// fn bindgen_test_layout__Mbstatet() {
+//     assert_eq!(
+//         ::std::mem::size_of::<_Mbstatet>(),
+//         8usize,
+//         concat!("Size of: ", stringify!(_Mbstatet))
+//     );
+//     assert_eq!(
+//         ::std::mem::align_of::<_Mbstatet>(),
+//         4usize,
+//         concat!("Alignment of ", stringify!(_Mbstatet))
+//     );
+//     assert_eq!(
+//         unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Wchar as *const _ as usize },
+//         0usize,
+//         concat!(
+//             "Offset of field: ",
+//             stringify!(_Mbstatet),
+//             "::",
+//             stringify!(_Wchar)
+//         )
+//     );
+//     assert_eq!(
+//         unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._Byte as *const _ as usize },
+//         4usize,
+//         concat!(
+//             "Offset of field: ",
+//             stringify!(_Mbstatet),
+//             "::",
+//             stringify!(_Byte)
+//         )
+//     );
+//     assert_eq!(
+//         unsafe { &(*(::std::ptr::null::<_Mbstatet>()))._State as *const _ as usize },
+//         6usize,
+//         concat!(
+//             "Offset of field: ",
+//             stringify!(_Mbstatet),
+//             "::",
+//             stringify!(_State)
+//         )
+//     );
+// }
+// pub type mbstate_t = _Mbstatet;
 pub type time_t = __time64_t;
 pub type rsize_t = size_t;
 pub type _ino_t = ::std::os::raw::c_ushort;

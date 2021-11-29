@@ -8,6 +8,4 @@ edition = "2021"
 [dependencies]
 
 [build-dependencies]
-bindgen = "*"
-reqwest = {version = "*",features=["blocking"]}
-zip = "0.5"
+# bindgen = "*"

@@ -8,32 +8,22 @@ fn download() -> Result<()> {
     if std::path::Path::new(&out_dir).exists() {
         return Ok(());
     }
-    if cfg!(target_os = "windows") {
-        let (url, file) = ("https://github.com/embree/embree/releases/download/v3.13.2/embree-3.13.2.x64.vc14.windows.zip",
-        "embree.zip");
-        Command::new("curl.exe")
-            .args(["-L", url, "--output", file])
-            .output()
-            .unwrap();
-        std::fs::create_dir_all(&out_dir).unwrap();
-        Command::new("tar")
-            .args(["-zxvf", file, "-C", &out_dir, "--strip-components=1"])
-            .output()
-            .unwrap();
+    let (url, file) = if cfg!(target_os = "windows") {
+        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x64.vc14.windows.zip",
+        "embree.zip")
     } else {
-        let (url, file) = ("https://github.com/embree/embree/releases/download/v3.13.2/embree-3.13.2.x86_64.linux.tar.gz",
-        "embree.zip");
-        Command::new("curl")
-            .args(["-L", url, "--output", file])
-            .output()
-            .unwrap();
-        std::fs::create_dir_all(&out_dir).unwrap();
-        Command::new("tar")
-            .args(["-zxvf", file, "-C", &out_dir, "--strip-components=1"])
-            .output()
-            .unwrap();
+        ("hhttps://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.linux.tar.gz",
+        "embree.zip")
     };
-
+    Command::new("curl.exe")
+        .args(["-L", url, "--output", file])
+        .output()
+        .unwrap();
+    std::fs::create_dir_all(&out_dir).unwrap();
+    Command::new("tar")
+        .args(["-zxvf", file, "-C", &out_dir, "--strip-components=1"])
+        .output()
+        .unwrap();
     Ok(())
 }
 // fn gen() -> Result<()> {

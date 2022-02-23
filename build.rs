@@ -12,7 +12,7 @@ fn download() -> Result<()> {
         ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x64.vc14.windows.zip",
         "embree.zip")
     } else {
-        ("hhttps://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.linux.tar.gz",
+        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.linux.tar.gz",
         "embree.zip")
     };
     Command::new("curl.exe")

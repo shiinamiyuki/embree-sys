@@ -1,7 +1,6 @@
-use std::io::{copy, Result};
-use std::path::{Path, PathBuf};
+use std::io::Result;
 use std::process::Command;
-use std::{env, fs};
+use std::env;
 fn download() -> Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = out_dir.clone() + &"/embree";
@@ -11,9 +10,15 @@ fn download() -> Result<()> {
     let (url, file) = if cfg!(target_os = "windows") {
         ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x64.vc14.windows.zip",
         "embree.zip")
-    } else {
+    } else if cfg!(target_os = "macos") {
+        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.macosx.zip",
+        "embree.zip")
+
+    } else if cfg!(target_os = "linux") {
         ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.linux.tar.gz",
         "embree.zip")
+    } else {
+        panic!("Not support platform")
     };
     Command::new("curl")
         .args(["-L", url, "--output", file])
@@ -59,6 +64,7 @@ fn main() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/embree/bin/", out_dir);
     println!("cargo:rustc-link-search=native={}/embree/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree3");
+    #[cfg(target_os = "windows")]
     let out_dir = out_dir.clone() + &"/embree/bin";
     #[cfg(target_os = "windows")]
     for entry in fs::read_dir(out_dir)? {

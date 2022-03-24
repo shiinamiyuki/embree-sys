@@ -67,17 +67,17 @@ fn main() -> Result<()> {
     #[cfg(target_os = "windows")]
     let out_dir = out_dir.clone() + &"/embree/bin";
     #[cfg(target_os = "windows")]
-    for entry in fs::read_dir(out_dir)? {
+    for entry in std::fs::read_dir(out_dir)? {
         let entry = entry?;
         let path = entry.path();
         if path.extension().is_some() && path.extension().unwrap() == "dll" {
             // let target_dir = get_output_path();
             let comps: Vec<_> = path.components().collect();
             let dest =
-                PathBuf::from_iter(comps[..comps.len() - 6].iter()).join(path.file_name().unwrap());
+                std::path::PathBuf::from_iter(comps[..comps.len() - 6].iter()).join(path.file_name().unwrap());
             println!("{:?}", path);
             println!("{:?}", dest);
-            fs::copy(path, dest).unwrap();
+            std::fs::copy(path, dest).unwrap();
         }
     }
     Ok(())

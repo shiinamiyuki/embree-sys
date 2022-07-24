@@ -1,6 +1,6 @@
+use std::env;
 use std::io::Result;
 use std::process::Command;
-use std::env;
 fn download() -> Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = out_dir.clone() + &"/embree";
@@ -8,15 +8,14 @@ fn download() -> Result<()> {
         return Ok(());
     }
     let (url, file) = if cfg!(target_os = "windows") {
-        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x64.vc14.windows.zip",
+        ("https://github.com/embree/embree/releases/download/v3.13.4/embree-3.13.4.x64.vc14.windows.zip",
         "embree.zip")
     } else if cfg!(target_os = "macos") {
-        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.macosx.zip",
+        ("https://github.com/embree/embree/releases/download/v3.13.4/embree-3.13.4.x86_64.macosx.zip",
         "embree.zip")
-
     } else if cfg!(target_os = "linux") {
-        ("https://github.com/embree/embree/releases/download/v3.13.3/embree-3.13.3.x86_64.linux.tar.gz",
-        "embree.zip")
+        ("https://github.com/embree/embree/releases/download/v3.13.4/embree-3.13.4.x86_64.linux.tar.gz",
+        "embree.tar.gz")
     } else {
         panic!("Not support platform")
     };
@@ -38,6 +37,7 @@ fn download() -> Result<()> {
 //         .clang_arg("-I./embree/include")
 //         .clang_arg("-I./embree/include/embree3")
 //         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+//         .prepend_enum_name(false)
 //         .generate()
 //         .expect("Unable to generate bindings");
 //     bindings
@@ -64,17 +64,23 @@ fn main() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/embree/bin/", out_dir);
     println!("cargo:rustc-link-search=native={}/embree/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree3");
-    #[cfg(target_os = "windows")]
-    let out_dir = out_dir.clone() + &"/embree/bin";
-    #[cfg(target_os = "windows")]
+
+    let out_dir = if cfg!(target_os = "windows") {
+        out_dir.clone() + &"/embree/bin"
+    } else {
+        out_dir.clone() + &"/embree/lib"
+    };
+
     for entry in std::fs::read_dir(out_dir)? {
         let entry = entry?;
         let path = entry.path();
-        if path.extension().is_some() && path.extension().unwrap() == "dll" {
+        if path.extension().is_some()
+            && (path.extension().unwrap() == "dll" || path.extension().unwrap() == "so")
+        {
             // let target_dir = get_output_path();
             let comps: Vec<_> = path.components().collect();
-            let dest =
-                std::path::PathBuf::from_iter(comps[..comps.len() - 6].iter()).join(path.file_name().unwrap());
+            let dest = std::path::PathBuf::from_iter(comps[..comps.len() - 6].iter())
+                .join(path.file_name().unwrap());
             println!("{:?}", path);
             println!("{:?}", dest);
             std::fs::copy(path, dest).unwrap();

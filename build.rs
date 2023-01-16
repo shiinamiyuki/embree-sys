@@ -49,7 +49,9 @@ fn main() -> Result<()> {
         let entry = entry?;
         let path = entry.path();
         if path.extension().is_some()
-            && (path.extension().unwrap() == "dll" || path.extension().unwrap() == "so")
+            && (path.extension().unwrap() == "dll" ||
+                path.extension().unwrap() == "so" ||
+                path.extension().unwrap() == "dylib")
         {
             let comps: Vec<_> = path.components().collect();
             let dest = std::path::PathBuf::from_iter(comps[..comps.len() - 5].iter())

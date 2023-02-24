@@ -56,18 +56,16 @@ fn is_path_dll(path: &PathBuf) -> bool {
 }
 fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
     let out_dir = src_dir.clone();
-    dbg!(&out_dir);
-    dbg!(&dst_dir);
     for entry in std::fs::read_dir(out_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
         if is_path_dll(&path) {
-            // let target_dir = get_output_path();
 
             let copy_if_different = |src, dst| {
-                let p_src = Path::new(&src);
+                let p_src = Path::canonicalize(src).unwrap();
+                let p_src = p_src.as_path();
                 let p_dst = Path::new(&dst);
-                let should_copy = p_dst.exists();
+                let should_copy = !p_dst.exists();
                 let check_should_copy = || -> Option<bool> {
                     let src_metadata = fs::metadata(p_src).ok()?;
                     let dst_metadata = fs::metadata(p_dst).ok()?;
@@ -84,7 +82,6 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
             }
             {
                 let dest = dst_dir.clone().join("deps").join(path.file_name().unwrap());
-                dbg!(&dest);
                 copy_if_different(&path, dest);
             }
         }
@@ -165,7 +162,7 @@ fn build_embree_from_source() -> Result<()> {
     let comps: Vec<_> = out_dir.components().collect();
     copy_dlls(
         &out_dir,
-        &PathBuf::from_iter(comps[..comps.len() - 5].iter()),
+        &PathBuf::from_iter(comps[..comps.len() - 4].iter()),
     );
     Ok(())
 }

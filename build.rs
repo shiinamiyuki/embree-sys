@@ -35,7 +35,25 @@ fn gen(out_dir: &String) -> Result<()> {
         .expect("Couldn't write bindings!");
     Ok(())
 }
-
+fn is_path_dll(path: &PathBuf) -> bool {
+    let basic_check = path.extension().is_some()
+        && (path.extension().unwrap() == "dll"
+            || path.extension().unwrap() == "so"
+            || path.extension().unwrap() == "dylib");
+    if basic_check {
+        return true;
+    }
+    if cfg!(target_os = "linux") {
+        if let Some(stem) = path.file_stem() {
+            if let Some(ext) = PathBuf::from(stem).extension() {
+                if ext == "so" {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
 fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
     let out_dir = src_dir.clone();
     dbg!(&out_dir);
@@ -43,11 +61,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
     for entry in std::fs::read_dir(out_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
-        if path.extension().is_some()
-            && (path.extension().unwrap() == "dll"
-                || path.extension().unwrap() == "so"
-                || path.extension().unwrap() == "dylib")
-        {
+        if is_path_dll(&path) {
             // let target_dir = get_output_path();
 
             let copy_if_different = |src, dst| {
@@ -149,14 +163,16 @@ fn build_embree_from_source() -> Result<()> {
     let out_dir = PathBuf::from(out_dir);
     let out_dir = fs::canonicalize(out_dir).unwrap();
     let comps: Vec<_> = out_dir.components().collect();
-    copy_dlls(&out_dir, &PathBuf::from_iter(comps[..comps.len() - 5].iter()));
+    copy_dlls(
+        &out_dir,
+        &PathBuf::from_iter(comps[..comps.len() - 5].iter()),
+    );
     Ok(())
 }
 fn prebuild() -> Result<()> {
-    let out_dir = env::var("OUT_DIR").unwrap();
     gen(&"embree".to_string())?;
-    println!("cargo:rustc-link-search=native={}/bin/", out_dir);
-    println!("cargo:rustc-link-search=native={}/lib/", out_dir);
+    println!("cargo:rustc-link-search=native=embree/bin/");
+    println!("cargo:rustc-link-search=native=embree/lib/");
     println!("cargo:rustc-link-lib=dylib=embree4");
 
     let src_dir = if cfg!(target_os = "windows") {
@@ -170,7 +186,10 @@ fn prebuild() -> Result<()> {
     let out_dir = PathBuf::from(out_dir);
     let out_dir = fs::canonicalize(out_dir).unwrap();
     let comps: Vec<_> = out_dir.components().collect();
-    copy_dlls(&src_dir, &PathBuf::from_iter(comps[..comps.len() - 3].iter()));
+    copy_dlls(
+        &src_dir,
+        &PathBuf::from_iter(comps[..comps.len() - 3].iter()),
+    );
     Ok(())
 }
 fn main() -> Result<()> {

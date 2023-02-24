@@ -36,10 +36,10 @@ fn gen(out_dir: &String) -> Result<()> {
     Ok(())
 }
 
-fn copy_dlls(out_dir: &PathBuf) {
-    let mut out_dir = out_dir.clone();
-
+fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
+    let out_dir = src_dir.clone();
     dbg!(&out_dir);
+    dbg!(&dst_dir);
     for entry in std::fs::read_dir(out_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
@@ -49,7 +49,7 @@ fn copy_dlls(out_dir: &PathBuf) {
                 || path.extension().unwrap() == "dylib")
         {
             // let target_dir = get_output_path();
-            let comps: Vec<_> = path.components().collect();
+
             let copy_if_different = |src, dst| {
                 let p_src = Path::new(&src);
                 let p_dst = Path::new(&dst);
@@ -65,23 +65,76 @@ fn copy_dlls(out_dir: &PathBuf) {
                 }
             };
             {
-                let dest = std::path::PathBuf::from_iter(comps[..comps.len() - 5].iter())
-                    .join(path.file_name().unwrap());
+                let dest = dst_dir.clone().join(path.file_name().unwrap());
                 copy_if_different(&path, dest);
             }
             {
-                let dest = std::path::PathBuf::from_iter(comps[..comps.len() - 5].iter())
-                    .join("deps")
-                    .join(path.file_name().unwrap());
+                let dest = dst_dir.clone().join("deps").join(path.file_name().unwrap());
                 dbg!(&dest);
                 copy_if_different(&path, dest);
             }
         }
     }
 }
-
-fn main() -> Result<()> {
-    let out_dir = build_embree().unwrap();
+fn prebuild_available() -> bool {
+    if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
+        true
+    } else {
+        false
+    }
+}
+fn download_embree() {
+    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.0.0/embree-4.0.0.x86_64.linux.tar.gz"#;
+    let windows_url =
+        r#"https://github.com/embree/embree/releases/download/v4.0.0/embree-4.0.0.x64.windows.zip"#;
+    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.0.0.zip"#;
+    let out_dir = "embree";
+    if prebuild_available() {
+        let url = if cfg!(target_os = "windows") {
+            windows_url
+        } else {
+            linux_url
+        };
+        let filename = if cfg!(target_os = "windows") {
+            "embree.zip"
+        } else {
+            "embree.tar.gz"
+        };
+        Command::new("curl")
+            .arg("-L")
+            .arg(url)
+            .arg("--output")
+            .arg(filename)
+            .output()
+            .unwrap();
+        std::fs::create_dir_all(&out_dir).unwrap();
+        Command::new("tar")
+            .args(["-zxvf", filename, "-C", &out_dir, "--strip-components=1"])
+            .output()
+            .unwrap();
+    } else {
+        Command::new("curl")
+            .arg("-L")
+            .arg(source_url)
+            .arg("--output")
+            .arg("embree.zip")
+            .output()
+            .unwrap();
+        std::fs::create_dir_all(&out_dir).unwrap();
+        Command::new("tar")
+            .args([
+                "-zxvf",
+                "embree.zip",
+                "-C",
+                &out_dir,
+                "--strip-components=1",
+            ])
+            .output()
+            .unwrap();
+    }
+}
+fn build_embree_from_source() -> Result<()> {
+    let out_dir = build_embree()?;
     gen(&out_dir)?;
     let out_dir = env::var("OUT_DIR").unwrap();
     println!("cargo:rustc-link-search=native={}/bin/", out_dir);
@@ -93,6 +146,39 @@ fn main() -> Result<()> {
     } else {
         out_dir.clone() + &"/lib"
     };
-    copy_dlls(&PathBuf::from(out_dir));
+    let out_dir = PathBuf::from(out_dir);
+    let out_dir = fs::canonicalize(out_dir).unwrap();
+    let comps: Vec<_> = out_dir.components().collect();
+    copy_dlls(&out_dir, &PathBuf::from_iter(comps[..comps.len() - 5].iter()));
+    Ok(())
+}
+fn prebuild() -> Result<()> {
+    let out_dir = env::var("OUT_DIR").unwrap();
+    gen(&"embree".to_string())?;
+    println!("cargo:rustc-link-search=native={}/bin/", out_dir);
+    println!("cargo:rustc-link-search=native={}/lib/", out_dir);
+    println!("cargo:rustc-link-lib=dylib=embree4");
+
+    let src_dir = if cfg!(target_os = "windows") {
+        "embree/bin"
+    } else {
+        "embree/lib"
+    };
+    let src_dir = PathBuf::from(src_dir);
+    let src_dir = fs::canonicalize(src_dir).unwrap();
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = PathBuf::from(out_dir);
+    let out_dir = fs::canonicalize(out_dir).unwrap();
+    let comps: Vec<_> = out_dir.components().collect();
+    copy_dlls(&src_dir, &PathBuf::from_iter(comps[..comps.len() - 3].iter()));
+    Ok(())
+}
+fn main() -> Result<()> {
+    download_embree();
+    if prebuild_available() {
+        prebuild()?;
+    } else {
+        build_embree_from_source()?;
+    }
     Ok(())
 }

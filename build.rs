@@ -15,6 +15,7 @@ fn build_embree() -> Result<String> {
         .define("EMBREE_GEOMETRY_QUAD", "OFF")
         .define("EMBREE_GEOMETRY_CURVE", "OFF")
         .define("EMBREE_GEOMETRY_SUBDIVISION", "OFF")
+        .define("EMBREE_RAY_MASK", "ON")
         .define("EMBREE_GEOMETRY_POINT", "OFF")
         .generator("Ninja")
         .build();
@@ -60,7 +61,6 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
         let entry = entry.unwrap();
         let path = entry.path();
         if is_path_dll(&path) {
-
             let copy_if_different = |src, dst| {
                 let p_src = Path::canonicalize(src).unwrap();
                 let p_src = p_src.as_path();

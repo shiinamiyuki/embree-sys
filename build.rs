@@ -22,6 +22,7 @@ fn build_embree() -> Result<String> {
 
     Ok(out_dir)
 }
+
 fn gen(out_dir: &String) -> Result<()> {
     let bindings = bindgen::Builder::default()
         .header(format!("{}/include/embree4/rtcore.h", out_dir))
@@ -36,11 +37,13 @@ fn gen(out_dir: &String) -> Result<()> {
         .expect("Couldn't write bindings!");
     Ok(())
 }
+
 fn is_path_dll(path: &PathBuf) -> bool {
     let basic_check = path.extension().is_some()
         && (path.extension().unwrap() == "dll"
-            || path.extension().unwrap() == "so"
-            || path.extension().unwrap() == "dylib");
+        || path.extension().unwrap() == "lib" // lib is also need on Windows for linking DLLs
+        || path.extension().unwrap() == "so"
+        || path.extension().unwrap() == "dylib");
     if basic_check {
         return true;
     }
@@ -55,6 +58,7 @@ fn is_path_dll(path: &PathBuf) -> bool {
     }
     false
 }
+
 fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
     let out_dir = src_dir.clone();
     for entry in std::fs::read_dir(out_dir).unwrap() {
@@ -91,6 +95,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
         }
     }
 }
+
 fn prebuild_available() -> bool {
     if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
         true
@@ -98,6 +103,7 @@ fn prebuild_available() -> bool {
         false
     }
 }
+
 fn download_embree() {
     let linux_url = r#"https://github.com/embree/embree/releases/download/v4.0.0/embree-4.0.0.x86_64.linux.tar.gz"#;
     let windows_url =
@@ -148,6 +154,7 @@ fn download_embree() {
             .unwrap();
     }
 }
+
 fn build_embree_from_source() -> Result<()> {
     let out_dir = build_embree()?;
     gen(&out_dir)?;
@@ -155,44 +162,52 @@ fn build_embree_from_source() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/bin/", out_dir);
     println!("cargo:rustc-link-search=native={}/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree4");
-
-    let out_dir = if cfg!(target_os = "windows") {
-        out_dir.clone() + &"/bin"
-    } else {
-        out_dir.clone() + &"/lib"
-    };
     let out_dir = PathBuf::from(out_dir);
-    let out_dir = fs::canonicalize(out_dir).unwrap();
     let comps: Vec<_> = out_dir.components().collect();
-    copy_dlls(
-        &out_dir,
-        &PathBuf::from_iter(comps[..comps.len() - 4].iter()),
-    );
+    let out_dir = if cfg!(target_os = "windows") {
+        PathBuf::from_iter(comps[..comps.len() - 3].iter())
+    } else {
+        PathBuf::from_iter(comps[..comps.len() - 2].iter())
+    };
+
+    println!("Target dir: {:?}", out_dir);
+
+    let get_dll_dir = |subdir| {
+        let dll_dir = out_dir.clone().join(subdir);
+        let dll_dir = PathBuf::from(dll_dir);
+        fs::canonicalize(dll_dir).unwrap()
+    };
+
+    copy_dlls(&get_dll_dir("lib"), &out_dir);
+    if cfg!(target_os = "windows") {
+        copy_dlls(&get_dll_dir("bin"), &out_dir);
+    }
     Ok(())
 }
+
 fn prebuild() -> Result<()> {
     gen(&"embree".to_string())?;
     println!("cargo:rustc-link-search=native=embree/bin/");
     println!("cargo:rustc-link-search=native=embree/lib/");
     println!("cargo:rustc-link-lib=dylib=embree4");
 
-    let src_dir = if cfg!(target_os = "windows") {
-        "embree/bin"
-    } else {
-        "embree/lib"
+    let get_dll_dir = |subdir| {
+        let dll_dir = PathBuf::from("embree").join(subdir);
+        fs::canonicalize(dll_dir).unwrap()
     };
-    let src_dir = PathBuf::from(src_dir);
-    let src_dir = fs::canonicalize(src_dir).unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = PathBuf::from(out_dir);
     let out_dir = fs::canonicalize(out_dir).unwrap();
     let comps: Vec<_> = out_dir.components().collect();
-    copy_dlls(
-        &src_dir,
-        &PathBuf::from_iter(comps[..comps.len() - 3].iter()),
-    );
+    let out_dir = PathBuf::from_iter(comps[..comps.len() - 3].iter());
+
+    copy_dlls(&get_dll_dir("lib"), &out_dir);
+    if cfg!(target_os = "windows") {
+        copy_dlls(&get_dll_dir("bin"), &out_dir);
+    }
     Ok(())
 }
+
 fn main() -> Result<()> {
     download_embree();
     if prebuild_available() {

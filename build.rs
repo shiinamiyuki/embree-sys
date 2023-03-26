@@ -164,13 +164,7 @@ fn build_embree_from_source() -> Result<()> {
     println!("cargo:rustc-link-lib=dylib=embree4");
     let out_dir = PathBuf::from(out_dir);
     let comps: Vec<_> = out_dir.components().collect();
-    let out_dir = if cfg!(target_os = "windows") {
-        PathBuf::from_iter(comps[..comps.len() - 3].iter())
-    } else {
-        PathBuf::from_iter(comps[..comps.len() - 2].iter())
-    };
-
-    println!("Target dir: {:?}", out_dir);
+    let dst_dir = PathBuf::from_iter(comps[..comps.len() - 3].iter());
 
     let get_dll_dir = |subdir| {
         let dll_dir = out_dir.clone().join(subdir);
@@ -178,9 +172,9 @@ fn build_embree_from_source() -> Result<()> {
         fs::canonicalize(dll_dir).unwrap()
     };
 
-    copy_dlls(&get_dll_dir("lib"), &out_dir);
+    copy_dlls(&get_dll_dir("lib"), &dst_dir);
     if cfg!(target_os = "windows") {
-        copy_dlls(&get_dll_dir("bin"), &out_dir);
+        copy_dlls(&get_dll_dir("bin"), &dst_dir);
     }
     Ok(())
 }

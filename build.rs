@@ -24,10 +24,15 @@ fn build_embree() -> Result<String> {
 }
 
 fn gen(out_dir: &String) -> Result<()> {
+    match env::var("GEN_BINDING") {
+        Ok(_) => {}
+        Err(_) => return Ok(()),
+    }
     let bindings = bindgen::Builder::default()
         .header(format!("{}/include/embree4/rtcore.h", out_dir))
         .clang_arg("-I./embree/include")
         .clang_arg("-I./embree/include/embree4")
+        .allowlist_function("rtc.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .prepend_enum_name(false)
         .generate()
@@ -89,7 +94,10 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
                 copy_if_different(&path, dest);
             }
             {
-                let dest = dst_dir.clone().join("examples").join(path.file_name().unwrap());
+                let dest = dst_dir
+                    .clone()
+                    .join("examples")
+                    .join(path.file_name().unwrap());
                 copy_if_different(&path, dest);
             }
         }

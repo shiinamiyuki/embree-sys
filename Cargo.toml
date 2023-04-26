@@ -10,3 +10,7 @@ edition = "2021"
 [build-dependencies]
 bindgen = "0.64"
 cmake = "0.1.49"
+
+[features]
+default = []
+hack_copy_dll = []

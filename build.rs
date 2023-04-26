@@ -81,6 +81,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
                     Some(src_metadata.modified().ok()? != dst_metadata.modified().ok()?)
                 };
                 let should_copy = should_copy || check_should_copy().unwrap_or(true);
+                dbg!(&p_src, &p_dst, should_copy);
                 if should_copy {
                     std::fs::copy(p_src, p_dst).unwrap();
                 }

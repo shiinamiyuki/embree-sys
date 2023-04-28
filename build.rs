@@ -199,6 +199,7 @@ fn prebuild() -> Result<()> {
         fs::canonicalize(dll_dir).unwrap()
     };
     let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
+    dbg!(&dst_dir);
     let dst_dir = PathBuf::from(dst_dir);
     let dst_dir = fs::canonicalize(dst_dir).unwrap();
     copy_dlls(&get_dll_dir("lib"), &dst_dir);

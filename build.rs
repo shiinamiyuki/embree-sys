@@ -17,6 +17,10 @@ fn build_embree() -> Result<String> {
         .define("EMBREE_GEOMETRY_SUBDIVISION", "OFF")
         .define("EMBREE_RAY_MASK", "ON")
         .define("EMBREE_GEOMETRY_POINT", "OFF")
+        .define("CMAKE_SKIP_BUILD_RPATH", "FALSE")
+        .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "TRUE")
+        .define("CMAKE_INSTALL_RPATH", "")
+        .define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "TRUE")
         .generator("Ninja")
         .build();
 
@@ -182,7 +186,7 @@ fn build_embree_from_source() -> Result<()> {
         let dll_dir = PathBuf::from(dll_dir);
         fs::canonicalize(dll_dir).unwrap()
     };
-    copy_dlls(&get_dll_dir("bin"), &dst_dir);
+    copy_dlls(&get_dll_dir("lib"), &dst_dir);
     Ok(())
 }
 

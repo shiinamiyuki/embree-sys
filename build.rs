@@ -190,8 +190,10 @@ fn build_embree_from_source() -> Result<()> {
 
 fn prebuild() -> Result<()> {
     gen(&"embree".to_string())?;
-    println!("cargo:rustc-link-search=native=embree/bin/");
-    println!("cargo:rustc-link-search=native=embree/lib/");
+    let cur_file = fs::canonicalize(file!())?;
+    let current_dir = cur_file.parent().unwrap();
+    println!("cargo:rustc-link-search=native={}/embree/bin/", current_dir.display());
+    println!("cargo:rustc-link-search=native={}/embree/lib/", current_dir.display());
     println!("cargo:rustc-link-lib=dylib=embree4");
 
     let get_dll_dir = |subdir:&str| {

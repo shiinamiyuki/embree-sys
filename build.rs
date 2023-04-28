@@ -172,25 +172,18 @@ fn build_embree_from_source() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree4");
     let out_dir = PathBuf::from(out_dir);
-    let comps: Vec<_> = out_dir.components().collect();
-    let do_copy_dll = |shift|{
-        let dst_dir = PathBuf::from_iter(comps[..comps.len() - 3 - shift].iter());
-
-        let get_dll_dir = |subdir| {
-            let dll_dir = out_dir.clone().join(subdir);
-            let dll_dir = PathBuf::from(dll_dir);
-            fs::canonicalize(dll_dir).unwrap()
-        };
-    
-        copy_dlls(&get_dll_dir("lib"), &dst_dir);
-        if cfg!(target_os = "windows") {
-            copy_dlls(&get_dll_dir("bin"), &dst_dir);
-        }
+    let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
+    let dst_dir = PathBuf::from(dst_dir);
+    let out_dir = fs::canonicalize(out_dir).unwrap();
+    let get_dll_dir = |subdir| {
+        let dll_dir = out_dir.clone().join(subdir);
+        let dll_dir = PathBuf::from(dll_dir);
+        fs::canonicalize(dll_dir).unwrap()
     };
-    if cfg!(feature = "hack_copy_dll") {
-        do_copy_dll(8);
+    copy_dlls(&get_dll_dir("lib"), &dst_dir);
+    if cfg!(target_os = "windows") {
+        copy_dlls(&out_dir, &dst_dir);
     }
-    do_copy_dll(0);
     Ok(())
 }
 
@@ -204,21 +197,13 @@ fn prebuild() -> Result<()> {
         let dll_dir = PathBuf::from("embree").join(subdir);
         fs::canonicalize(dll_dir).unwrap()
     };
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let out_dir = PathBuf::from(out_dir);
-    let out_dir = fs::canonicalize(out_dir).unwrap();
-    let comps: Vec<_> = out_dir.components().collect();
-    let do_copy_dll = |shift|{
-        let dst_dir = PathBuf::from_iter(comps[..comps.len() - 3 - shift].iter());
-        copy_dlls(&get_dll_dir("lib"), &dst_dir);
-        if cfg!(target_os = "windows") {
-            copy_dlls(&get_dll_dir("bin"), &dst_dir);
-        }
-    };
-    if cfg!(feature = "hack_copy_dll") {
-        do_copy_dll(8);
+    let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
+    let dst_dir = PathBuf::from(dst_dir);
+    let dst_dir = fs::canonicalize(dst_dir).unwrap();
+    copy_dlls(&get_dll_dir("lib"), &dst_dir);
+    if cfg!(target_os = "windows") {
+        copy_dlls(&get_dll_dir("bin"), &dst_dir);
     }
-    do_copy_dll(0);
     Ok(())
 }
 

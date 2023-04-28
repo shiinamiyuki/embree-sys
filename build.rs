@@ -173,7 +173,7 @@ fn build_embree_from_source() -> Result<()> {
     println!("cargo:rustc-link-lib=dylib=embree4");
     let out_dir = PathBuf::from(out_dir);
     let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
-    dbg!(dst_dir);
+    dbg!(&dst_dir);
     let dst_dir = PathBuf::from(dst_dir);
     let out_dir = fs::canonicalize(out_dir).unwrap();
     let get_dll_dir = |subdir| {

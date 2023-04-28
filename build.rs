@@ -107,7 +107,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
 
 fn prebuild_available() -> bool {
     if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
-        false
+        true
     } else {
         false
     }

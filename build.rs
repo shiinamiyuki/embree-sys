@@ -90,17 +90,17 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
                 let dest = dst_dir.clone().join(path.file_name().unwrap());
                 copy_if_different(&path, dest);
             }
-            {
-                let dest = dst_dir.clone().join("deps").join(path.file_name().unwrap());
-                copy_if_different(&path, dest);
-            }
-            {
-                let dest = dst_dir
-                    .clone()
-                    .join("examples")
-                    .join(path.file_name().unwrap());
-                copy_if_different(&path, dest);
-            }
+            // {
+            //     let dest = dst_dir.clone().join("deps").join(path.file_name().unwrap());
+            //     copy_if_different(&path, dest);
+            // }
+            // {
+            //     let dest = dst_dir
+            //         .clone()
+            //         .join("examples")
+            //         .join(path.file_name().unwrap());
+            //     copy_if_different(&path, dest);
+            // }
         }
     }
 }

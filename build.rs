@@ -107,7 +107,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
 
 fn prebuild_available() -> bool {
     if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
-        true
+        false
     } else {
         false
     }
@@ -182,10 +182,7 @@ fn build_embree_from_source() -> Result<()> {
         let dll_dir = PathBuf::from(dll_dir);
         fs::canonicalize(dll_dir).unwrap()
     };
-    copy_dlls(&get_dll_dir("lib"), &dst_dir);
-    if cfg!(target_os = "windows") {
-        copy_dlls(&out_dir, &dst_dir);
-    }
+    copy_dlls(&get_dll_dir("bin"), &dst_dir);
     Ok(())
 }
 
@@ -197,7 +194,7 @@ fn prebuild() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/embree/lib/", current_dir.display());
     println!("cargo:rustc-link-lib=dylib=embree4");
 
-    let get_dll_dir = |subdir:&str| {
+    let get_dll_dir = |subdir: &str| {
         let dll_dir = PathBuf::from("embree").join(subdir);
         fs::canonicalize(dll_dir).unwrap()
     };

@@ -179,8 +179,8 @@ fn build_embree_from_source() -> Result<()> {
     let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
     dbg!(&dst_dir);
     let dst_dir = PathBuf::from(dst_dir);
-    fs::create_dir_all(&dst_dir).unwrap();
     let out_dir = fs::canonicalize(out_dir).unwrap();
+    fs::create_dir_all(&dst_dir).unwrap();
     let get_dll_dir = |subdir| {
         let dll_dir = out_dir.clone().join(subdir);
         let dll_dir = PathBuf::from(dll_dir);
@@ -205,8 +205,8 @@ fn prebuild() -> Result<()> {
     let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
     dbg!(&dst_dir);
     let dst_dir = PathBuf::from(dst_dir);
-    fs::create_dir_all(&dst_dir).unwrap();
     let dst_dir = fs::canonicalize(dst_dir).unwrap();
+    fs::create_dir_all(&dst_dir).unwrap();
     copy_dlls(&get_dll_dir("lib"), &dst_dir);
     if cfg!(target_os = "windows") {
         copy_dlls(&get_dll_dir("bin"), &dst_dir);

@@ -167,7 +167,10 @@ fn download_embree() {
             .unwrap();
     }
 }
-
+fn get_out_dir() -> Option<String> {
+    println!("cargo:rerun-if-env-changed=EMBREE_DLL_OUT_DIR");
+    env::var("EMBREE_DLL_OUT_DIR").ok()
+}
 fn build_embree_from_source() -> Result<()> {
     let out_dir = build_embree()?;
     gen(&out_dir)?;
@@ -176,18 +179,19 @@ fn build_embree_from_source() -> Result<()> {
     println!("cargo:rustc-link-search=native={}/lib/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree4");
     let out_dir = PathBuf::from(out_dir);
-    let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
-    dbg!(&dst_dir);
-    let dst_dir = PathBuf::from(dst_dir);
-    fs::create_dir_all(&dst_dir).unwrap();
-    assert!(dst_dir.exists());
-    let out_dir = fs::canonicalize(out_dir).unwrap();
-    let get_dll_dir = |subdir| {
-        let dll_dir = out_dir.clone().join(subdir);
-        let dll_dir = PathBuf::from(dll_dir);
-        fs::canonicalize(dll_dir).unwrap()
-    };
-    copy_dlls(&get_dll_dir("lib"), &dst_dir);
+    if let Some(dst_dir) = get_out_dir() {
+        dbg!(&dst_dir);
+        let dst_dir = PathBuf::from(dst_dir);
+        fs::create_dir_all(&dst_dir).unwrap();
+        assert!(dst_dir.exists());
+        let out_dir = fs::canonicalize(out_dir).unwrap();
+        let get_dll_dir = |subdir| {
+            let dll_dir = out_dir.clone().join(subdir);
+            let dll_dir = PathBuf::from(dll_dir);
+            fs::canonicalize(dll_dir).unwrap()
+        };
+        copy_dlls(&get_dll_dir("lib"), &dst_dir);
+    }
     Ok(())
 }
 
@@ -195,23 +199,30 @@ fn prebuild() -> Result<()> {
     gen(&"embree".to_string())?;
     let cur_file = fs::canonicalize(file!())?;
     let current_dir = cur_file.parent().unwrap();
-    println!("cargo:rustc-link-search=native={}/embree/bin/", current_dir.display());
-    println!("cargo:rustc-link-search=native={}/embree/lib/", current_dir.display());
+    println!(
+        "cargo:rustc-link-search=native={}/embree/bin/",
+        current_dir.display()
+    );
+    println!(
+        "cargo:rustc-link-search=native={}/embree/lib/",
+        current_dir.display()
+    );
     println!("cargo:rustc-link-lib=dylib=embree4");
 
     let get_dll_dir = |subdir: &str| {
         let dll_dir = PathBuf::from("embree").join(subdir);
         fs::canonicalize(dll_dir).unwrap()
     };
-    let dst_dir = env::var("EMBREE_DLL_OUT_DIR").unwrap();
-    dbg!(&dst_dir);
-    let dst_dir = PathBuf::from(dst_dir);
-    fs::create_dir_all(&dst_dir).unwrap();
-    assert!(dst_dir.exists());
-    let dst_dir = fs::canonicalize(dst_dir).unwrap();
-    copy_dlls(&get_dll_dir("lib"), &dst_dir);
-    if cfg!(target_os = "windows") {
-        copy_dlls(&get_dll_dir("bin"), &dst_dir);
+    if let Some(dst_dir) = get_out_dir() {
+        dbg!(&dst_dir);
+        let dst_dir = PathBuf::from(dst_dir);
+        fs::create_dir_all(&dst_dir).unwrap();
+        assert!(dst_dir.exists());
+        let dst_dir = fs::canonicalize(dst_dir).unwrap();
+        copy_dlls(&get_dll_dir("lib"), &dst_dir);
+        if cfg!(target_os = "windows") {
+            copy_dlls(&get_dll_dir("bin"), &dst_dir);
+        }
     }
     Ok(())
 }

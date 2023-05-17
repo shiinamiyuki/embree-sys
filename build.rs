@@ -17,10 +17,17 @@ fn build_embree() -> Result<String> {
         .define("EMBREE_GEOMETRY_SUBDIVISION", "OFF")
         .define("EMBREE_RAY_MASK", "ON")
         .define("EMBREE_GEOMETRY_POINT", "OFF")
-        .define("CMAKE_SKIP_BUILD_RPATH", "FALSE")
-        .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "TRUE")
-        .define("CMAKE_INSTALL_RPATH", "")
-        .define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "TRUE")
+        .define("CMAKE_MACOSX_RPATH", "ON")
+        .define("CMAKE_SKIP_BUILD_RPATH", "OFF")
+        .define("CMAKE_BUILD_RPATH_USE_ORIGIN", "ON")
+        .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
+        .define("CMAKE_INSTALL_RPATH", if cfg!(target_os = "linux") {
+            "$ORIGIN"
+        } else if cfg!(target_os = "macos") {
+            "@loader_path"
+        } else {
+            ""
+        })
         .generator("Ninja")
         .build();
 
@@ -167,10 +174,12 @@ fn download_embree() {
             .unwrap();
     }
 }
+
 fn get_out_dir() -> Option<String> {
     println!("cargo:rerun-if-env-changed=EMBREE_DLL_OUT_DIR");
     env::var("EMBREE_DLL_OUT_DIR").ok()
 }
+
 fn build_embree_from_source() -> Result<()> {
     let out_dir = build_embree()?;
     gen(&out_dir)?;

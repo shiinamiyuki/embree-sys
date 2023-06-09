@@ -5,6 +5,7 @@ use std::{env, fs};
 
 fn build_embree() -> Result<String> {
     let out_dir = env::var("OUT_DIR").unwrap();
+    let generator = env::var("CMAKE_GENERATOR").unwrap_or("Ninja".to_string());
 
     cmake::Config::new("embree")
         .define("CMAKE_BUILD_TYPE", "Release")
@@ -28,7 +29,7 @@ fn build_embree() -> Result<String> {
         } else {
             ""
         })
-        .generator("Ninja")
+        .generator(generator)
         .build();
 
     Ok(out_dir)

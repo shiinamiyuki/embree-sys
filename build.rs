@@ -118,6 +118,7 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
 }
 
 fn prebuild_available() -> bool {
+    println!("cargo:rerun-if-env-changed=EMBREE_FORCE_BUILD_FROM_SOURCE");
     let force_build = env::var("EMBREE_FORCE_BUILD_FROM_SOURCE").unwrap_or("0".to_string());
     let force_build = force_build.to_uppercase();
     let force_build = force_build == "1" || force_build == "ON" || force_build == "TRUE";

@@ -77,6 +77,8 @@ fn is_path_dll(path: &PathBuf) -> bool {
 }
 
 fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
+    if !src_dir.exists() { return; }
+    let src_dir = fs::canonicalize(src_dir).unwrap();
     let out_dir = src_dir.clone();
     for entry in std::fs::read_dir(out_dir).unwrap() {
         let entry = entry.unwrap();
@@ -202,11 +204,10 @@ fn build_embree_from_source() -> Result<()> {
         let out_dir = fs::canonicalize(out_dir).unwrap();
         let get_dll_dir = |subdir| {
             let dll_dir = out_dir.clone().join(subdir);
-            let dll_dir = PathBuf::from(dll_dir);
-            assert!(dll_dir.exists());
-            fs::canonicalize(dll_dir).unwrap()
+            PathBuf::from(dll_dir)
         };
         copy_dlls(&get_dll_dir("lib"), &dst_dir);
+        copy_dlls(&get_dll_dir("lib64"), &dst_dir);
     }
     Ok(())
 }

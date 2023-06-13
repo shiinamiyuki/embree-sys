@@ -122,7 +122,12 @@ fn prebuild_available() -> bool {
     let force_build = env::var("EMBREE_FORCE_BUILD_FROM_SOURCE").unwrap_or("0".to_string());
     let force_build = force_build.to_uppercase();
     let force_build = force_build == "1" || force_build == "ON" || force_build == "TRUE";
-    !force_build && cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux"))
+    if force_build { return false; }
+    if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
+        true
+    } else {
+        false
+    }
 }
 
 fn download_embree() {

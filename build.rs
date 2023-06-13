@@ -118,18 +118,17 @@ fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
 }
 
 fn prebuild_available() -> bool {
-    if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
-        true
-    } else {
-        false
-    }
+    let force_build = env::var("EMBREE_FORCE_BUILD_FROM_SOURCE").unwrap_or("0".to_string());
+    let force_build = force_build.to_uppercase();
+    let force_build = force_build == "1" || force_build == "ON" || force_build == "TRUE";
+    !force_build && cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux"))
 }
 
 fn download_embree() {
-    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.0.0/embree-4.0.0.x86_64.linux.tar.gz"#;
+    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x86_64.linux.tar.gz"#;
     let windows_url =
-        r#"https://github.com/embree/embree/releases/download/v4.0.0/embree-4.0.0.x64.windows.zip"#;
-    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.0.0.zip"#;
+        r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x64.windows.zip"#;
+    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.1.0.tar.gz"#;
     let out_dir = "embree";
     if prebuild_available() {
         let url = if cfg!(target_os = "windows") {
@@ -159,14 +158,14 @@ fn download_embree() {
             .arg("-L")
             .arg(source_url)
             .arg("--output")
-            .arg("embree.zip")
+            .arg("embree.tar.gz")
             .output()
             .unwrap();
         std::fs::create_dir_all(&out_dir).unwrap();
         Command::new("tar")
             .args([
                 "-zxvf",
-                "embree.zip",
+                "embree.tar.gz",
                 "-C",
                 &out_dir,
                 "--strip-components=1",

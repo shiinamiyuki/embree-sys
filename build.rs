@@ -197,6 +197,7 @@ fn build_embree_from_source() -> Result<()> {
         let get_dll_dir = |subdir| {
             let dll_dir = out_dir.clone().join(subdir);
             let dll_dir = PathBuf::from(dll_dir);
+            assert!(dll_dir.exists());
             fs::canonicalize(dll_dir).unwrap()
         };
         copy_dlls(&get_dll_dir("lib"), &dst_dir);
@@ -220,6 +221,7 @@ fn prebuild() -> Result<()> {
 
     let get_dll_dir = |subdir: &str| {
         let dll_dir = PathBuf::from("embree").join(subdir);
+        assert!(dll_dir.exists());
         fs::canonicalize(dll_dir).unwrap()
     };
     if let Some(dst_dir) = get_out_dir() {

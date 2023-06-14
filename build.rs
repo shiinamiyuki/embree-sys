@@ -157,10 +157,17 @@ fn download_embree() {
             .output()
             .unwrap();
         std::fs::create_dir_all(&out_dir).unwrap();
-        Command::new("tar")
-            .args(["-zxvf", filename, "-C", &out_dir])
-            .output()
-            .unwrap();
+        if cfg!(target_os = "windows") {
+            Command::new("tar")
+                .args(["-zxvf", filename, "-C", &out_dir])
+                .output()
+                .unwrap();
+        } else {
+            Command::new("tar")
+                .args(["-zxvf", filename, "-C", &out_dir, "--strip-components=1"])
+                .output()
+                .unwrap();
+        }
     } else {
         Command::new("curl")
             .arg("-L")

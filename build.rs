@@ -176,7 +176,6 @@ fn download_embree() {
                 "embree.tar.gz",
                 "-C",
                 &out_dir,
-                "--strip-components=1",
             ])
             .output()
             .unwrap();

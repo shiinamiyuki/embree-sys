@@ -201,6 +201,7 @@ fn build_embree_from_source() -> Result<()> {
     let out_dir = env::var("OUT_DIR").unwrap();
     println!("cargo:rustc-link-search=native={}/bin/", out_dir);
     println!("cargo:rustc-link-search=native={}/lib/", out_dir);
+    println!("cargo:rustc-link-search=native={}/lib64/", out_dir);
     println!("cargo:rustc-link-lib=dylib=embree4");
     let out_dir = PathBuf::from(out_dir);
     if let Some(dst_dir) = get_out_dir() {

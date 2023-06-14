@@ -226,21 +226,18 @@ fn prebuild() -> Result<()> {
     );
     println!("cargo:rustc-link-lib=dylib=embree4");
 
-    let get_dll_dir = |subdir: &str| {
-        let dll_dir = PathBuf::from("embree").join(subdir);
-        assert!(dll_dir.exists());
-        fs::canonicalize(dll_dir).unwrap()
-    };
+    // let get_dll_dir = |subdir: &str| {
+    //     let dll_dir = PathBuf::from("embree").join(subdir);
+    //     assert!(dll_dir.exists());
+    //     fs::canonicalize(dll_dir).unwrap()
+    // };
     if let Some(dst_dir) = get_out_dir() {
         dbg!(&dst_dir);
         let dst_dir = PathBuf::from(dst_dir);
         fs::create_dir_all(&dst_dir).unwrap();
         assert!(dst_dir.exists());
         let dst_dir = fs::canonicalize(dst_dir).unwrap();
-        copy_dlls(&get_dll_dir("lib"), &dst_dir);
-        if cfg!(target_os = "windows") {
-            copy_dlls(&get_dll_dir("bin"), &dst_dir);
-        }
+        copy_dlls(&PathBuf::from("embree"), &dst_dir);
     }
     Ok(())
 }

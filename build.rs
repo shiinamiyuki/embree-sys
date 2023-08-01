@@ -22,13 +22,16 @@ fn build_embree() -> Result<String> {
         .define("CMAKE_SKIP_BUILD_RPATH", "OFF")
         .define("CMAKE_BUILD_RPATH_USE_ORIGIN", "ON")
         .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
-        .define("CMAKE_INSTALL_RPATH", if cfg!(target_os = "linux") {
-            "$ORIGIN"
-        } else if cfg!(target_os = "macos") {
-            "@loader_path"
-        } else {
-            ""
-        })
+        .define(
+            "CMAKE_INSTALL_RPATH",
+            if cfg!(target_os = "linux") {
+                "$ORIGIN"
+            } else if cfg!(target_os = "macos") {
+                "@loader_path"
+            } else {
+                ""
+            },
+        )
         .generator(generator)
         .build();
 
@@ -77,7 +80,9 @@ fn is_path_dll(path: &PathBuf) -> bool {
 }
 
 fn copy_dlls(src_dir: &PathBuf, dst_dir: &PathBuf) {
-    if !src_dir.exists() { return; }
+    if !src_dir.exists() {
+        return;
+    }
     let src_dir = fs::canonicalize(src_dir).unwrap();
     let out_dir = src_dir.clone();
     for entry in std::fs::read_dir(out_dir).unwrap() {
@@ -124,7 +129,9 @@ fn prebuild_available() -> bool {
     let force_build = env::var("EMBREE_FORCE_BUILD_FROM_SOURCE").unwrap_or("0".to_string());
     let force_build = force_build.to_uppercase();
     let force_build = force_build == "1" || force_build == "ON" || force_build == "TRUE";
-    if force_build { return false; }
+    if force_build {
+        return false;
+    }
     if cfg!(target_arch = "x86_64") && (cfg!(target_os = "windows") || cfg!(target_os = "linux")) {
         true
     } else {
@@ -149,13 +156,28 @@ fn download_embree() {
         } else {
             "embree.tar.gz"
         };
-        Command::new("curl")
+        eprintln!("Downloading embree...");
+        let curl = Command::new("curl")
             .arg("-L")
             .arg(url)
             .arg("--output")
             .arg(filename)
-            .output()
+            .spawn()
             .unwrap();
+        match curl.wait_with_output() {
+            Ok(output) => {
+                if output.status.success() {
+                    println!("Downloaded embree");
+                } else {
+                    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+                    eprintln!("{}", String::from_utf8_lossy(&output.stdout));
+                    panic!("Unable to download embree");
+                }
+            }
+            Err(e) => {
+                panic!("Unable to download embree {}", e)
+            }
+        }
         std::fs::create_dir_all(&out_dir).unwrap();
         if cfg!(target_os = "windows") {
             Command::new("tar")
@@ -183,7 +205,7 @@ fn download_embree() {
                 "embree.tar.gz",
                 "-C",
                 &out_dir,
-                "--strip-components=1"
+                "--strip-components=1",
             ])
             .output()
             .unwrap();

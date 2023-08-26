@@ -154,10 +154,10 @@ fn prebuild_available() -> bool {
 }
 
 fn download_embree() {
-    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x86_64.linux.tar.gz"#;
+    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.2.0/embree-4.2.0.x86_64.linux.tar.gz"#;
     let windows_url =
-        r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x64.windows.zip"#;
-    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.1.0.tar.gz"#;
+        r#"https://github.com/embree/embree/releases/download/v4.2.0/embree-4.2.0.x64.windows.zip"#;
+    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.2.0.tar.gz"#;
     let out_dir = "embree";
     if prebuild_available() {
         let url = if cfg!(target_os = "windows") {

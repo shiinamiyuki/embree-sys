@@ -32,6 +32,13 @@ fn build_embree() -> Result<String> {
                 ""
             },
         )
+        .define(
+            "EMBREE_MAX_ISA",
+            if cfg!(target_arch = "x86_64") {
+                "AVX2"
+            } else {
+                "NEON2X"
+            })
         .generator(generator)
         .build();
 

@@ -44,7 +44,7 @@ fn build_embree() -> Result<String> {
             if cfg!(target_arch = "x86_64") {
                 "AVX2"
             } else {
-                "NEON2X"
+                "NEON"
             })
         .generator(generator)
         .build();

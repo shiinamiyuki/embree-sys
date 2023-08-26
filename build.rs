@@ -44,8 +44,10 @@ fn build_embree() -> Result<String> {
             if cfg!(target_arch = "x86_64") {
                 "AVX2"
             } else {
-                "NEON"
+                "NEON2X"
             })
+        .define("CMAKE_C_FLAGS", "")
+        .define("CMAKE_CXX_FLAGS", "")
         .generator(generator)
         .build();
 

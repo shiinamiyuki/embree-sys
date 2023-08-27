@@ -2,14 +2,13 @@ use std::io::Result;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, fs};
-use std::env::VarError;
 
 fn build_embree() -> Result<String> {
     let out_dir = env::var("OUT_DIR").unwrap();
     let generator = env::var("CMAKE_GENERATOR").unwrap_or("Ninja".to_string());
 
-    let build = cmake::Config::new("embree")
-        .generator(generator)
+    let mut build = cmake::Config::new("embree");
+    build.generator(generator)
         .define("CMAKE_BUILD_TYPE", "Release")
         .define("EMBREE_ISPC_SUPPORT", "OFF")
         .define("EMBREE_TASKING_SYSTEM", "INTERNAL")

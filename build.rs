@@ -2,12 +2,14 @@ use std::io::Result;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, fs};
+use std::env::VarError;
 
 fn build_embree() -> Result<String> {
     let out_dir = env::var("OUT_DIR").unwrap();
     let generator = env::var("CMAKE_GENERATOR").unwrap_or("Ninja".to_string());
 
-    cmake::Config::new("embree")
+    let build = cmake::Config::new("embree")
+        .generator(generator)
         .define("CMAKE_BUILD_TYPE", "Release")
         .define("EMBREE_ISPC_SUPPORT", "OFF")
         .define("EMBREE_TASKING_SYSTEM", "INTERNAL")
@@ -45,10 +47,20 @@ fn build_embree() -> Result<String> {
                 "AVX2"
             } else {
                 "NEON2X"
-            })
-        .generator(generator)
-        .build();
-
+            });
+    match env::var("EMBREE_CC") {
+        Ok(cc) => {
+            build.define("CMAKE_C_COMPILER", cc);
+        }
+        Err(_) => {}
+    }
+    match env::var("EMBREE_CXX") {
+        Ok(cxx) => {
+            build.define("CMAKE_CXX_COMPILER", cxx);
+        }
+        Err(_) => {}
+    }
+    build.build();
     Ok(out_dir)
 }
 

@@ -10,6 +10,8 @@ fn build_embree() -> Result<String> {
     let mut build = cmake::Config::new("embree");
     build.generator(generator)
         .define("CMAKE_BUILD_TYPE", "Release")
+        .define("CMAKE_C_FLAGS", "")
+        .define("CMAKE_CXX_FLAGS", "")
         .define("EMBREE_ISPC_SUPPORT", "OFF")
         .define("EMBREE_TASKING_SYSTEM", "INTERNAL")
         .define("EMBREE_TUTORIALS", "OFF")

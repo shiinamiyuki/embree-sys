@@ -46,9 +46,11 @@ fn build_embree() -> Result<String> {
             } else {
                 "NEON2X"
             })
-        .define("CMAKE_C_FLAGS", "\"\"")
-        .define("CMAKE_CXX_FLAGS", "\"\"")
-        .define("CMAKE_ASM_FLAGS", "\"\"")
+        .define("CMAKE_C_FLAGS", "")
+        .define("CMAKE_CXX_FLAGS", "")
+        .define("CMAKE_ASM_FLAGS", "")
+        .define("CMAKE_C_COMPILER", "")
+        .define("CMAKE_CXX_COMPILER", "")
         .generator(generator)
         .build();
 

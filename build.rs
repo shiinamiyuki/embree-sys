@@ -1,14 +1,15 @@
+use sha2::{Digest, Sha256};
 use std::io::Result;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, fs};
-
 fn build_embree() -> Result<String> {
     let out_dir = env::var("OUT_DIR").unwrap();
     let generator = env::var("CMAKE_GENERATOR").unwrap_or("Ninja".to_string());
 
     let mut build = cmake::Config::new("embree");
-    build.generator(generator)
+    build
+        .generator(generator)
         .define("CMAKE_BUILD_TYPE", "Release")
         .define("EMBREE_ISPC_SUPPORT", "OFF")
         .define("EMBREE_TASKING_SYSTEM", "INTERNAL")
@@ -39,14 +40,16 @@ fn build_embree() -> Result<String> {
                 "OFF"
             } else {
                 "ON"
-            })
+            },
+        )
         .define(
             "EMBREE_MAX_ISA",
             if cfg!(target_arch = "x86_64") {
                 "AVX2"
             } else {
                 "NEON2X"
-            });
+            },
+        );
     match env::var("EMBREE_CC") {
         Ok(cc) => {
             build.define("CMAKE_C_COMPILER", cc);
@@ -164,6 +167,65 @@ fn prebuild_available() -> bool {
     }
 }
 
+fn sha256sum(filename: &str) -> String {
+    let mut file = std::fs::File::open(filename).unwrap();
+    let mut hasher = Sha256::new();
+    std::io::copy(&mut file, &mut hasher).unwrap();
+    let hash = hasher.finalize();
+    format!("{:X}", hash)
+}
+
+fn download_with_curl(url: &str, output: &str, expected_hash: &str) {
+    match env::var("EMBREE_ZIP_FILE") {
+        Ok(path) => {
+            if !path.is_empty() {
+                let hash = sha256sum(&path);
+                assert_eq!(
+                    hash, expected_hash,
+                    "You have downloaded wrong `{}`, expected hash {} but found {}\nPlease download again from {}",
+                    output, expected_hash, hash, url
+                );
+                if &path != output {
+                    std::fs::copy(&path, output).unwrap();
+                }
+                return;
+            }
+        }
+        Err(_) => {}
+    }
+    let mut curl = Command::new("curl")
+        .arg("-L")
+        .arg(url)
+        .arg("--output")
+        .arg(output)
+        .arg("-m")
+        .arg("180")
+        .spawn()
+        .unwrap();
+    let exit_status = curl.wait().unwrap();
+    if !exit_status.success() {
+        panic!("Unable to download embree");
+    }
+    let code = exit_status.code();
+    if let Some(code) = code {
+        if code == 28 {
+            eprintln!("Unable to download embree, timeout");
+            panic!("Unable to download embree, timeout");
+        } else if code != 0 {
+            eprintln!("Unable to download embree, exit code {}", code);
+            panic!("Unable to download embree, exit code {}", code);
+        }
+    } else {
+        eprintln!("Unable to download embree, exit code unknown");
+        panic!("Unable to download embree, exit code unknown");
+    }
+    let hash = sha256sum(output);
+    assert_eq!(
+        hash, expected_hash,
+        "File corrupted, expected hash {} for `{}` but found {}",
+        expected_hash, output, hash
+    );
+}
 fn download_embree() {
     let linux_url = r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x86_64.linux.tar.gz"#;
     let windows_url =
@@ -181,28 +243,13 @@ fn download_embree() {
         } else {
             "embree.tar.gz"
         };
+        let hash =  if cfg!(target_os = "windows") {
+            "8972AD00497B06F6ED83750EDF7FF57760B82E5C7262B4C40CE77599F516D197"
+        } else {
+            "8E5DD14C91054708FC589DD679E0FD7DE37EBCF8E208E8BC254ABC91F4C66C0B"
+        };
         eprintln!("Downloading embree...");
-        let curl = Command::new("curl")
-            .arg("-L")
-            .arg(url)
-            .arg("--output")
-            .arg(filename)
-            .spawn()
-            .unwrap();
-        match curl.wait_with_output() {
-            Ok(output) => {
-                if output.status.success() {
-                    println!("Downloaded embree");
-                } else {
-                    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
-                    eprintln!("{}", String::from_utf8_lossy(&output.stdout));
-                    panic!("Unable to download embree");
-                }
-            }
-            Err(e) => {
-                panic!("Unable to download embree {}", e)
-            }
-        }
+        download_with_curl(url, filename, hash);
         std::fs::create_dir_all(&out_dir).unwrap();
         if cfg!(target_os = "windows") {
             Command::new("tar")
@@ -216,13 +263,7 @@ fn download_embree() {
                 .unwrap();
         }
     } else {
-        Command::new("curl")
-            .arg("-L")
-            .arg(source_url)
-            .arg("--output")
-            .arg("embree.tar.gz")
-            .output()
-            .unwrap();
+        download_with_curl(source_url, "embree.tar.gz", "117EFD87D6DDDBF7B164EDD94B0BC057DA69D6422A25366283CDED57ED94738B");
         std::fs::create_dir_all(&out_dir).unwrap();
         Command::new("tar")
             .args([

@@ -193,6 +193,7 @@ fn download_with_curl(url: &str, output: &str, expected_hash: &str) {
         }
         Err(_) => {}
     }
+    eprintln!("Downloading embree...");
     let mut curl = Command::new("curl")
         .arg("-L")
         .arg(url)
@@ -248,7 +249,6 @@ fn download_embree() {
         } else {
             "8E5DD14C91054708FC589DD679E0FD7DE37EBCF8E208E8BC254ABC91F4C66C0B"
         };
-        eprintln!("Downloading embree...");
         download_with_curl(url, filename, hash);
         std::fs::create_dir_all(&out_dir).unwrap();
         if cfg!(target_os = "windows") {
@@ -342,6 +342,7 @@ fn prebuild() -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    println!("cargo:rerun-if-env-changed=EMBREE_ZIP_FILE");
     download_embree();
     if prebuild_available() {
         prebuild()?;

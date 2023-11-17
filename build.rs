@@ -16,7 +16,7 @@ fn build_embree() -> Result<String> {
         .define("EMBREE_TUTORIALS", "OFF")
         .define("EMBREE_STATIC_LIB", "OFF")
         .define("EMBREE_GEOMETRY_QUAD", "OFF")
-        .define("EMBREE_GEOMETRY_CURVE", "OFF")
+        .define("EMBREE_GEOMETRY_CURVE", "ON")
         .define("EMBREE_GEOMETRY_SUBDIVISION", "OFF")
         .define("EMBREE_RAY_MASK", "ON")
         .define("EMBREE_GEOMETRY_POINT", "OFF")

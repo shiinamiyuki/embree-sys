@@ -200,7 +200,7 @@ fn download_with_curl(url: &str, output: &str, expected_hash: &str) {
         .arg("--output")
         .arg(output)
         .arg("-m")
-        .arg("180")
+        .arg("300")
         .spawn()
         .unwrap();
     let exit_status = curl.wait().unwrap();

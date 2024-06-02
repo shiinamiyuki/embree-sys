@@ -88,6 +88,8 @@ fn gen(out_dir: &String) -> Result<()> {
 
 fn is_path_dll(path: &PathBuf) -> bool {
     let basic_check = path.extension().is_some()
+        && !path.file_name().unwrap().to_str().unwrap().contains("msvcp")
+        && !path.file_name().unwrap().to_str().unwrap().contains("vcruntime")
         && (path.extension().unwrap() == "dll"
         || path.extension().unwrap() == "lib" // lib is also need on Windows for linking DLLs
         || path.extension().unwrap() == "so"

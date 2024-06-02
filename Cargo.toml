@@ -1,6 +1,6 @@
 [package]
 name = "embree_sys"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.66.1"
-cmake = "0.1.49"
+bindgen = "0.69.4"
+cmake = "0.1.50"
 sha2 = "0.10"
 
 [features]

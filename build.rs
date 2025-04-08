@@ -24,7 +24,7 @@ fn build_embree() -> Result<String> {
         .define("CMAKE_SKIP_BUILD_RPATH", "OFF")
         .define("CMAKE_BUILD_RPATH_USE_ORIGIN", "ON")
         .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
-        .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")// workaround CMake 4.0
+        .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5") // workaround CMake 4.0
         .define(
             "CMAKE_INSTALL_RPATH",
             if cfg!(target_os = "linux") {
@@ -89,8 +89,18 @@ fn gen(out_dir: &String) -> Result<()> {
 
 fn is_path_dll(path: &PathBuf) -> bool {
     let basic_check = path.extension().is_some()
-        && !path.file_name().unwrap().to_str().unwrap().contains("msvcp")
-        && !path.file_name().unwrap().to_str().unwrap().contains("vcruntime")
+        && !path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("msvcp")
+        && !path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("vcruntime")
         && (path.extension().unwrap() == "dll"
         || path.extension().unwrap() == "lib" // lib is also need on Windows for linking DLLs
         || path.extension().unwrap() == "so"
@@ -225,16 +235,15 @@ fn download_with_curl(url: &str, output: &str, expected_hash: &str) {
     }
     let hash = sha256sum(output);
     assert_eq!(
-        hash, expected_hash,
+        hash.to_lowercase(), expected_hash.to_lowercase(),
         "File corrupted, expected hash {} for `{}` but found {}",
         expected_hash, output, hash
     );
 }
 fn download_embree() {
-    let linux_url = r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x86_64.linux.tar.gz"#;
-    let windows_url =
-        r#"https://github.com/embree/embree/releases/download/v4.1.0/embree-4.1.0.x64.windows.zip"#;
-    let source_url = r#"https://github.com/embree/embree/archive/refs/tags/v4.1.0.tar.gz"#;
+    let linux_url = r#"https://github.com/RenderKit/embree/releases/download/v4.4.0/embree-4.4.0.x86_64.linux.tar.gz"#;
+    let windows_url = r#"https://github.com/RenderKit/embree/releases/download/v4.4.0/embree-4.4.0.x64.windows.zip"#;
+    let source_url = r#"https://github.com/RenderKit/embree/archive/refs/tags/v4.4.0.tar.gz"#;
     let out_dir = "embree";
     if prebuild_available() {
         let url = if cfg!(target_os = "windows") {
@@ -247,10 +256,10 @@ fn download_embree() {
         } else {
             "embree.tar.gz"
         };
-        let hash =  if cfg!(target_os = "windows") {
-            "8972AD00497B06F6ED83750EDF7FF57760B82E5C7262B4C40CE77599F516D197"
+        let hash = if cfg!(target_os = "windows") {
+            "d951e5e6bd295c54cdd66be9cdb44a4e8c42fb38a99f94f79305e48765fc3454"
         } else {
-            "8E5DD14C91054708FC589DD679E0FD7DE37EBCF8E208E8BC254ABC91F4C66C0B"
+            "cb3d4402537fc9165c76c3316b8953dcfea523cd1eaf588e2de7639864ee3c57"
         };
         download_with_curl(url, filename, hash);
         std::fs::create_dir_all(&out_dir).unwrap();
@@ -266,7 +275,11 @@ fn download_embree() {
                 .unwrap();
         }
     } else {
-        download_with_curl(source_url, "embree.tar.gz", "117EFD87D6DDDBF7B164EDD94B0BC057DA69D6422A25366283CDED57ED94738B");
+        download_with_curl(
+            source_url,
+            "embree.tar.gz",
+            "acb517b0ea0f4b442235d5331b69f96192c28da6aca5d5dde0cbe40799638d5c",
+        );
         std::fs::create_dir_all(&out_dir).unwrap();
         Command::new("tar")
             .args([

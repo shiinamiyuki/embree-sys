@@ -270,7 +270,7 @@ fn download_embree() {
                 .unwrap();
         } else {
             Command::new("tar")
-                .args(["-zxvf", filename, "-C", &out_dir, "--strip-components=1"])
+                .args(["-zxvf", filename, "-C", &out_dir])
                 .output()
                 .unwrap();
         }

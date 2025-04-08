@@ -24,6 +24,7 @@ fn build_embree() -> Result<String> {
         .define("CMAKE_SKIP_BUILD_RPATH", "OFF")
         .define("CMAKE_BUILD_RPATH_USE_ORIGIN", "ON")
         .define("CMAKE_BUILD_WITH_INSTALL_RPATH", "ON")
+        .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")// workaround CMake 4.0
         .define(
             "CMAKE_INSTALL_RPATH",
             if cfg!(target_os = "linux") {
